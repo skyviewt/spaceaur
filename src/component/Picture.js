@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
+import '../css/Picure.css';
 import { Thumbnail } from 'react-bootstrap';
 
 
@@ -88,7 +89,7 @@ class Picture extends Component {
         //     {this.state.hover ? <div>{this.props.title}</div> : null}
         // </div>
         <Thumbnail src={thumbnailUrl(this.props.farm, this.props.server, this.props.photoId, this.props.secret)} alt={this.props.title}>
-            <p>{this.props.title}</p>
+            <p className="image-title">{this.props.title}</p>
       </Thumbnail>
     );
 

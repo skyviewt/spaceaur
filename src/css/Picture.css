@@ -1,0 +1,14 @@
+.thumbnail .caption {
+    color: white;
+    position: absolute;
+    width: 100%;
+}
+.image-title {
+    margin: 0;
+    position: absolute;
+    bottom: 0;
+    padding: 2vmin;
+    text-align: center;
+    width: calc(100% - 8px);
+    background: #000000b3;
+}
