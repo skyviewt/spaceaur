@@ -13,6 +13,7 @@ const getInfoUrl = (apiKey, photoId, secret) =>
 
 
 class PicturesContainer extends Component {
+
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -38,7 +39,7 @@ class PicturesContainer extends Component {
 			 () => {
 			this.setState({
 				error: true
-			})
+			});
 		});
 	}
 
@@ -70,7 +71,7 @@ class PicturesContainer extends Component {
 			}, () => {
 			this.setState({
 				error: true
-			})
+			});
 		});
 
 	}
@@ -79,8 +80,6 @@ class PicturesContainer extends Component {
 	getSizesForAllPics(sizesCallArray){
 		let stateObj = this.state.photolist;
 		return Promise.all(sizesCallArray).then(response =>{
-			console.log(stateObj);
-			console.log(response);
 
 			// if arrays order not maintained:
 			//Concat the arrays, and reduce the combined array to a Map. 
@@ -104,11 +103,9 @@ class PicturesContainer extends Component {
 
 
 	getInfoForAllPics(infosCallArray){
-		var that = this;
 		let stateObj = this.state.photolist;
 		return Promise.all(infosCallArray).then(response =>{
-			console.log(stateObj);
-			console.log(response);
+
 			const merged = _.merge(stateObj, response);
 
 			console.log(merged);
@@ -130,8 +127,10 @@ class PicturesContainer extends Component {
 			})
 			.then(d => d.json())
 			.then(data => {
+
 				let getSizeCalls = [];
 				let getInfoCalls = [];
+
 				let photos = data.photos.photo.map(photo =>{
 					getSizeCalls.push( that.fetchSizes(that.props.apiKey, photo.id) );
 					getInfoCalls.push( that.fetchInfo(that.props.apiKey, photo.id, photo.secret));
@@ -144,6 +143,7 @@ class PicturesContainer extends Component {
 					   'title': photo.title 
 					}
 				});
+
 				this.setState({
 					photolist: photos,
 					page: data.photos.page,
@@ -152,15 +152,28 @@ class PicturesContainer extends Component {
 
 				this.getSizesForAllPics(getSizeCalls);
 				this.getInfoForAllPics(getInfoCalls);
-				console.log(this.state);
 				
 			}, () => {
 			this.setState({
 				error: true
-			})
+			});
 		});
 	}
 
+
+	sortByfilter(fieldToFilter){
+
+	}
+
+	// componentWillReceiveProps(nextProps) {
+	//   console.log(nextProps);
+	//   if(this.state.sortField !== nextProps.sortField || this.state.isAscending !== nextProps.isAscending) {
+	//   	this.setState({
+	//   		sortField: nextProps.sortField,
+	//   		isAscending: nextProps.isAscending
+	//   	});
+	//   }
+	// }
 
 	componentDidMount() {
 		this.fetchPictures(this.state.page);
@@ -182,9 +195,17 @@ class PicturesContainer extends Component {
 			});
 		}
 
-		return _.map(filteredArray, (item) => {
+		if(this.props.sortField && this.props.sortField !== ''){
+
+			filteredArray = _.orderBy(filteredArray, item =>{ 
+				return _.toNumber(item.info[that.props.sortField]);
+			}, [that.props.isAscending ? 'asc' : 'desc']);
+
+		}
+		console.log(filteredArray);
+		return _.map(filteredArray, (item, index) => {
 			return (
-				<Picture key={item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
+				<Picture index={index} key={item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
 			);
 		});
 	}
@@ -201,12 +222,11 @@ class PicturesContainer extends Component {
 
 		return (
 			<Masonry
-				className={"my-gallery-class"} // default ""
-				disableImagesLoaded={false} // default false
-				updateOnEachImageLoad={true} // default false and works only if disableImagesLoaded is false
-			>
+				className={"my-gallery-class"} 
+				disableImagesLoaded={false}
+				updateOnEachImageLoad={true}>
 
-			{this.getPictureList()}
+				{this.getPictureList()}
 
 			</Masonry>
 		);
