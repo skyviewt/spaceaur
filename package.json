@@ -10,7 +10,8 @@
     "react-bootstrap": "^0.31.5",
     "react-dom": "^16.2.0",
     "react-masonry-component": "^6.0.1",
-    "react-scripts": "1.0.17"
+    "react-scripts": "1.0.17",
+    "react-waypoint": "^7.3.3"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,10 +1,12 @@
 .my-gallery-class{
     margin-top: 70px;
 }
-.shown{
-	display: block;
+.loader {
+    margin: 0 auto;
+    text-align: center;
+    font-size: 24px;
 }
 
-.hide{
-	display: none;
+.loader .fa-spin{
+	color: #959a9b;
 }

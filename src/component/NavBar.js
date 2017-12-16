@@ -96,12 +96,14 @@ class NavBar extends Component {
 							<MenuItem
 								ref="taken1"
 								eventKey="taken1"
+								onClick={() => this.updateSortField('taken', true)}
 								onSelect={this.onChangeNavName}>
 								<i className="fa fa-calendar-o"></i> Date Taken Earliest First
 							</MenuItem>
 							<MenuItem
 								ref="taken2"
 								eventKey="taken2"
+								onClick={() => this.updateSortField('taken', false)}
 								onSelect={this.onChangeNavName}>
 								<i className="fa fa-calendar-o"></i> Date Taken Most Recent First
 							</MenuItem>
@@ -128,7 +130,7 @@ class NavBar extends Component {
 					<Navbar.Form pullRight>
 						<FormGroup>
 							<FormControl 
-								type="text" placeholder="Filter Image(by title/photo id...)" 
+								type="text" placeholder="Filter by Title/Id..." 
 								value={this.props.filterText} 
 								onChange={this.updateFilterText} >
 							</FormControl>

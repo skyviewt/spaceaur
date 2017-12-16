@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import Picture from './Picture';
 import Masonry from 'react-masonry-component';
+import Waypoint from 'react-waypoint';
 import '../css/PicturesContainer.css';
+
 import _ from 'lodash';
 
 const getPicturesUrl = (apiKey, userId, pageId) =>
@@ -18,12 +20,17 @@ class PicturesContainer extends Component {
 		super(props);
 		this.state = {
 			page: 1,
-			error: false
+			error: false,
+			isLoading: true
+
 		};
+		this.fetchMorePhotos = this.fetchMorePhotos.bind(this);
+		this.disPatchAllPromises = this.disPatchAllPromises.bind(this);
+		this.handleImageLoaded = this.handleImageLoaded.bind(this);
+
 	}
 
-
-	fetchSizes(apiKey, id){
+	fetchSizes(apiKey, farm, secret, id){
 		return fetch(getSizesUrl(apiKey, id))
 			.then(response => {
 				if (!response.ok) {
@@ -33,7 +40,7 @@ class PicturesContainer extends Component {
 			})
 			.then(d => d.json())
 			.then(d => {
-				return {id: id,
+				return {key: farm+'-'+secret+'-'+id,
 						sizes: d.sizes.size};
 			},
 			 () => {
@@ -44,7 +51,7 @@ class PicturesContainer extends Component {
 	}
 
 
-	fetchInfo(apiKey, id, secret){
+	fetchInfo(apiKey, farm, secret, id){
 		return fetch(getInfoUrl(apiKey, id, secret))
 			.then(response => {
 				if (!response.ok) {
@@ -54,18 +61,33 @@ class PicturesContainer extends Component {
 			})
 			.then(d => d.json())
 			.then(d => {
-				return {id: id,
+
+				let dateTakenObj = new Date(d.photo.dates.taken);
+
+				return {key: farm+'-'+secret+'-'+id,
 					info: {
-						lastupdate: d.photo.dates.lastupdate,
-						posted: d.photo.dates.posted,
-						taken: d.photo.dates.taken,
-						dateuploaded: d.photo.dateuploaded,
+						lastupdate: {
+							numeric: _.toNumber(d.photo.dates.lastupdate),
+							display: new Date(_.toNumber(d.photo.dates.lastupdate) * 1000)
+						},
+						posted: {
+							numeric: _.toNumber(d.photo.dates.posted),
+							display: new Date(_.toNumber(d.photo.dates.posted) * 1000)
+						},
+						taken: {
+							numeric: dateTakenObj.getTime()/1000|0,
+							display: dateTakenObj
+						},
+						dateuploaded: {
+							numeric: _.toNumber(d.photo.dateuploaded),
+							display: new Date(_.toNumber(d.photo.dateuploaded))
+						},
 						description: d.photo.description._content,
 						owner: {
 							location: d.photo.owner.location,
 							realname: d.photo.owner.realname
 						},
-						views: d.photo.views
+						views: _.toNumber(d.photo.views)
 					}};
 				
 			}, () => {
@@ -77,40 +99,21 @@ class PicturesContainer extends Component {
 	}
 
 
-	getSizesForAllPics(sizesCallArray){
+	disPatchAllPromises(callsArray){
 		let stateObj = this.state.photolist;
-		return Promise.all(sizesCallArray).then(response =>{
 
-			// if arrays order not maintained:
-			//Concat the arrays, and reduce the combined array to a Map. 
-			//Use Object#assign to combine objects with the same id to a new object,
-			// and store in map. Convert the map to an array with Map#values and spread
-		   
-			// const merged = [...stateObj.concat(response).reduce((m, o) => 
-			//     m.set(o.id, Object.assign(m.get(o.id) || {}, o))
-			// , new Map()).values()];
+		let firstPages = stateObj.length === 50 ? [] : _.dropRight(stateObj, 50);
+		let lastPage = stateObj.length === 50 ? stateObj : stateObj.slice(-50);
+		return Promise.all(callsArray).then(response =>{
 
 			// array order is maintained, can just do
-			const merged = _.merge(stateObj, response);
 
-			console.log(merged);
+			const merged = (_.merge(lastPage, response));
+
+			// console.log(merged);
 
 			this.setState({
-				photolist: merged
-			});
-		})
-	}
-
-
-	getInfoForAllPics(infosCallArray){
-		let stateObj = this.state.photolist;
-		return Promise.all(infosCallArray).then(response =>{
-
-			const merged = _.merge(stateObj, response);
-
-			console.log(merged);
-			this.setState({
-				photolist: merged
+				photolist: firstPages.concat(merged)
 			});
 		})
 	}
@@ -130,28 +133,29 @@ class PicturesContainer extends Component {
 
 				let getSizeCalls = [];
 				let getInfoCalls = [];
-
+				let previousPhotos = this.state.photolist || [];
 				let photos = data.photos.photo.map(photo =>{
-					getSizeCalls.push( that.fetchSizes(that.props.apiKey, photo.id) );
-					getInfoCalls.push( that.fetchInfo(that.props.apiKey, photo.id, photo.secret));
+					getSizeCalls.push( that.fetchSizes(that.props.apiKey, photo.farm, photo.secret, photo.id) );
+					getInfoCalls.push( that.fetchInfo(that.props.apiKey, photo.farm, photo.secret, photo.id));
 					return {
 					   'id': photo.id,
+					   'key': photo.farm+'-'+photo.secret+'-'+photo.id,
 					   'farm': photo.farm,
 					   'owner': photo.owner,
 					   'secret': photo.secret,
 					   'server': photo.server,
 					   'title': photo.title 
-					}
+					};
 				});
 
-				this.setState({
-					photolist: photos,
+				that.setState({
+					photolist: previousPhotos.concat(photos),
 					page: data.photos.page,
 					pages: data.photos.pages
 				});
 
-				this.getSizesForAllPics(getSizeCalls);
-				this.getInfoForAllPics(getInfoCalls);
+				that.disPatchAllPromises(getSizeCalls);
+				that.disPatchAllPromises(getInfoCalls);
 				
 			}, () => {
 			this.setState({
@@ -160,23 +164,22 @@ class PicturesContainer extends Component {
 		});
 	}
 
-
-	sortByfilter(fieldToFilter){
-
+	handleImageLoaded(){
+		this.setState({
+			isLoading: false
+		});
 	}
 
-	// componentWillReceiveProps(nextProps) {
-	//   console.log(nextProps);
-	//   if(this.state.sortField !== nextProps.sortField || this.state.isAscending !== nextProps.isAscending) {
-	//   	this.setState({
-	//   		sortField: nextProps.sortField,
-	//   		isAscending: nextProps.isAscending
-	//   	});
-	//   }
-	// }
 
 	componentDidMount() {
 		this.fetchPictures(this.state.page);
+	}
+
+	fetchMorePhotos(){
+		console.log('in waypoint');
+		if(this.state.page < this.state.pages && !this.state.isLoading) {
+			this.fetchPictures(this.state.page + 1);
+		}
 	}
 
 
@@ -197,15 +200,18 @@ class PicturesContainer extends Component {
 
 		if(this.props.sortField && this.props.sortField !== ''){
 
-			filteredArray = _.orderBy(filteredArray, item =>{ 
-				return _.toNumber(item.info[that.props.sortField]);
+			filteredArray = _.orderBy(filteredArray, item =>{
+				if(this.props.sortField === 'views'){
+					return item.info[that.props.sortField];
+				}
+				return item.info[that.props.sortField].numeric;
 			}, [that.props.isAscending ? 'asc' : 'desc']);
 
 		}
-		console.log(filteredArray);
+		// console.log(filteredArray);
 		return _.map(filteredArray, (item, index) => {
 			return (
-				<Picture index={index} key={item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
+				<Picture index={index} key={item.farm+'-'+item.secret+'-'+item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
 			);
 		});
 	}
@@ -216,19 +222,28 @@ class PicturesContainer extends Component {
 		if (this.state.error) {
 			return <p>Failed!</p>
 		}
-		if (!this.state.photolist) {
-			return <i className="fa fa-spinner fa-spin"></i>
-		} 
 
 		return (
-			<Masonry
-				className={"my-gallery-class"} 
-				disableImagesLoaded={false}
-				updateOnEachImageLoad={true}>
+			<div>
+				<div>
+					<Masonry
+						className={"my-gallery-class"} 
+						disableImagesLoaded={false}
+						updateOnEachImageLoad={false}
+						onImagesLoaded={this.handleImageLoaded}>
 
-				{this.getPictureList()}
+						{this.getPictureList()}
 
-			</Masonry>
+					</Masonry>
+				</div>
+				<Waypoint
+					buttomOffset={'-200px'}
+					onEnter={this.fetchMorePhotos}
+					debug={true}
+				>
+					 <div className="loader"><i className="fa fa-spinner fa-spin"></i></div>
+				</Waypoint>
+			</div>
 		);
 	}
 	}
