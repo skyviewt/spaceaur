@@ -1,80 +1,217 @@
 import React, { Component } from 'react';
 import Picture from './Picture';
 import Masonry from 'react-masonry-component';
+import '../css/PicturesContainer.css';
+import _ from 'lodash';
 
-const getPicturesUrl = (apiKey, userId) =>
-`https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${apiKey}&user_id=${userId}&format=json&nojsoncallback=1`;
+const getPicturesUrl = (apiKey, userId, pageId) =>
+`https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=${apiKey}&user_id=${userId}&page=${pageId}&format=json&nojsoncallback=1&per_page=50`;
+const getSizesUrl = (apiKey, photoId) =>
+`https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=${apiKey}&photo_id=${photoId}&format=json&nojsoncallback=1`;
+const getInfoUrl = (apiKey, photoId, secret) =>
+`https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=${apiKey}&photo_id=${photoId}&secret=${secret}&format=json&nojsoncallback=1`;
+
 
 class PicturesContainer extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            error: false
-        };
-    }
+	constructor(props) {
+		super(props);
+		this.state = {
+			page: 1,
+			error: false
+		};
+	}
 
-    componentDidMount() {
-        fetch(getPicturesUrl(this.props.apiKey, this.props.userId))
-            .then(response => {
-                if (!response.ok) {
-                    throw Error("Network request failed")
-                }
 
-                return response;
-            })
-            .then(d => d.json())
-            .then(data => {
-                console.log(this.props);
-                console.log(data);
-                this.setState({
-                    flikrPhotosRawData: data.photos.photo,
-                    page: data.photos.page,
-                    pages: data.photos.pages
-                });
-                
-            }, () => {
-            this.setState({
-                error: true
-            })
-        });
-    }
+	fetchSizes(apiKey, id){
+		return fetch(getSizesUrl(apiKey, id))
+			.then(response => {
+				if (!response.ok) {
+					throw Error('Network request failed')
+				}
+				return response;
+			})
+			.then(d => d.json())
+			.then(d => {
+				return {id: id,
+						sizes: d.sizes.size};
+			},
+			 () => {
+			this.setState({
+				error: true
+			})
+		});
+	}
 
-    // addToParsedPhoto(photo){
-    //     if(!this.state.photos){
-    //         this.state.photos = [photo];
 
-    //     }else{
-    //         this.state.photos.push(photo);
-    //     }
-    // }
+	fetchInfo(apiKey, id, secret){
+		return fetch(getInfoUrl(apiKey, id, secret))
+			.then(response => {
+				if (!response.ok) {
+					throw Error('Network request failed')
+				}
+				return response;
+			})
+			.then(d => d.json())
+			.then(d => {
+				return {id: id,
+					info: {
+						lastupdate: d.photo.dates.lastupdate,
+						posted: d.photo.dates.posted,
+						taken: d.photo.dates.taken,
+						dateuploaded: d.photo.dateuploaded,
+						description: d.photo.description._content,
+						owner: {
+							location: d.photo.owner.location,
+							realname: d.photo.owner.realname
+						},
+						views: d.photo.views
+					}};
+				
+			}, () => {
+			this.setState({
+				error: true
+			})
+		});
 
-    
-    
-      render() {
-    
-        if (this.state.error) {
-             return <p>Failed!</p>
-        }
-        if (!this.state.flikrPhotosRawData) {
-            return <i className="fa fa-spinner fa-spin"></i>
-        } 
-        var that = this;
-        var listItems = this.state.flikrPhotosRawData.map(function(item) {
+	}
+
+
+	getSizesForAllPics(sizesCallArray){
+		let stateObj = this.state.photolist;
+		return Promise.all(sizesCallArray).then(response =>{
+			console.log(stateObj);
+			console.log(response);
+
+			// if arrays order not maintained:
+			//Concat the arrays, and reduce the combined array to a Map. 
+			//Use Object#assign to combine objects with the same id to a new object,
+			// and store in map. Convert the map to an array with Map#values and spread
+		   
+			// const merged = [...stateObj.concat(response).reduce((m, o) => 
+			//     m.set(o.id, Object.assign(m.get(o.id) || {}, o))
+			// , new Map()).values()];
+
+			// array order is maintained, can just do
+			const merged = _.merge(stateObj, response);
+
+			console.log(merged);
+
+			this.setState({
+				photolist: merged
+			});
+		})
+	}
+
+
+	getInfoForAllPics(infosCallArray){
+		var that = this;
+		let stateObj = this.state.photolist;
+		return Promise.all(infosCallArray).then(response =>{
+			console.log(stateObj);
+			console.log(response);
+			const merged = _.merge(stateObj, response);
+
+			console.log(merged);
+			this.setState({
+				photolist: merged
+			});
+		})
+	}
+
+
+	fetchPictures(pageId){
+		var that = this;
+		fetch(getPicturesUrl(this.props.apiKey, this.props.userId, pageId))
+			.then(response => {
+				if (!response.ok) {
+					throw Error('Network request failed')
+				}
+				return response;
+			})
+			.then(d => d.json())
+			.then(data => {
+				let getSizeCalls = [];
+				let getInfoCalls = [];
+				let photos = data.photos.photo.map(photo =>{
+					getSizeCalls.push( that.fetchSizes(that.props.apiKey, photo.id) );
+					getInfoCalls.push( that.fetchInfo(that.props.apiKey, photo.id, photo.secret));
+					return {
+					   'id': photo.id,
+					   'farm': photo.farm,
+					   'owner': photo.owner,
+					   'secret': photo.secret,
+					   'server': photo.server,
+					   'title': photo.title 
+					}
+				});
+				this.setState({
+					photolist: photos,
+					page: data.photos.page,
+					pages: data.photos.pages
+				});
+
+				this.getSizesForAllPics(getSizeCalls);
+				this.getInfoForAllPics(getInfoCalls);
+				console.log(this.state);
+				
+			}, () => {
+			this.setState({
+				error: true
+			})
+		});
+	}
+
+
+	componentDidMount() {
+		this.fetchPictures(this.state.page);
+	}
+
+
+	getPictureList(){
+		let that = this;
+		let filteredArray = this.state.photolist;
+
+		if(this.props.filterText && this.props.filterText !== ''){
+			filteredArray = _.filter(that.state.photolist, (item) => {
+				if(isNaN(that.props.filterText)) {
+					// search for title
+					return item.title.toLowerCase().indexOf(that.props.filterText.toLowerCase()) !== -1;
+				}else{
+					return item.id.toLowerCase().indexOf(that.props.filterText.toLowerCase()) !== -1;
+				}
+			});
+		}
+
+		return _.map(filteredArray, (item) => {
 			return (
-				<Picture key={item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} apiKey={that.props.apiKey}></Picture>
+				<Picture key={item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
 			);
 		});
-        return (
-            <Masonry
-            className={'my-gallery-class'} // default ''
-            disableImagesLoaded={false} // default false
-            updateOnEachImageLoad={false} // default false and works only if disableImagesLoaded is false
-        >
-            {listItems}
-        </Masonry>
-        );
-      }
-  }
+	}
+
+
+	render() {
+
+		if (this.state.error) {
+			return <p>Failed!</p>
+		}
+		if (!this.state.photolist) {
+			return <i className="fa fa-spinner fa-spin"></i>
+		} 
+
+		return (
+			<Masonry
+				className={"my-gallery-class"} // default ""
+				disableImagesLoaded={false} // default false
+				updateOnEachImageLoad={true} // default false and works only if disableImagesLoaded is false
+			>
+
+			{this.getPictureList()}
+
+			</Masonry>
+		);
+	}
+	}
 
 
 export default PicturesContainer;

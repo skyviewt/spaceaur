@@ -1,0 +1,10 @@
+.my-gallery-class{
+    margin-top: 70px;
+}
+.shown{
+	display: block;
+}
+
+.hide{
+	display: none;
+}

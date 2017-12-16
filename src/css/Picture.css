@@ -1,14 +1,19 @@
 .thumbnail .caption {
     color: white;
     position: absolute;
-    width: 100%;
+    width: calc(100% - 22px);
+    bottom: 6px;
+    left: 11px;
 }
 .image-title {
-    margin: 0;
-    position: absolute;
-    bottom: 0;
     padding: 2vmin;
-    text-align: center;
-    width: calc(100% - 8px);
     background: #000000b3;
+    border-radius: 0 0 4px 4px;
+}
+.view-count{
+    display: block;
+    color: #8c8c8c;
+    font-size: small;
+    font-style: italic;
+    font-weight: 100;
 }
