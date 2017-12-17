@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import Picture from './Picture';
+import PictureCarousel from './PictureCarousel';
 import Masonry from 'react-masonry-component';
 import Waypoint from 'react-waypoint';
 import '../css/PicturesContainer.css';
-
+import { Alert, Button } from 'react-bootstrap';
 import _ from 'lodash';
 
 const getPicturesUrl = (apiKey, userId, pageId) =>
@@ -20,21 +21,24 @@ class PicturesContainer extends Component {
 		super(props);
 		this.state = {
 			page: 1,
-			error: false,
-			isLoading: true
-
+			error: false
 		};
 		this.fetchMorePhotos = this.fetchMorePhotos.bind(this);
 		this.disPatchAllPromises = this.disPatchAllPromises.bind(this);
-		this.handleImageLoaded = this.handleImageLoaded.bind(this);
-
+		this.refreshPage = this.refreshPage.bind(this);
+		this.dismissError = this.dismissError.bind(this);
+		this.handleOpenCarousel = this.handleOpenCarousel.bind(this);
+		this.handleCloseCarousel = this.handleCloseCarousel.bind(this);
 	}
 
 	fetchSizes(apiKey, farm, secret, id){
 		return fetch(getSizesUrl(apiKey, id))
 			.then(response => {
 				if (!response.ok) {
-					throw Error('Network request failed')
+					this.setState({
+						error: true,
+						errorMessage: response.statusText
+					});
 				}
 				return response;
 			})
@@ -55,7 +59,10 @@ class PicturesContainer extends Component {
 		return fetch(getInfoUrl(apiKey, id, secret))
 			.then(response => {
 				if (!response.ok) {
-					throw Error('Network request failed')
+					this.setState({
+						error: true,
+						errorMessage: response.statusText
+					});
 				}
 				return response;
 			})
@@ -68,19 +75,19 @@ class PicturesContainer extends Component {
 					info: {
 						lastupdate: {
 							numeric: _.toNumber(d.photo.dates.lastupdate),
-							display: new Date(_.toNumber(d.photo.dates.lastupdate) * 1000)
+							display: (new Date(_.toNumber(d.photo.dates.lastupdate) * 1000).toDateString())
 						},
 						posted: {
 							numeric: _.toNumber(d.photo.dates.posted),
-							display: new Date(_.toNumber(d.photo.dates.posted) * 1000)
+							display: (new Date(_.toNumber(d.photo.dates.posted) * 1000).toDateString())
 						},
 						taken: {
 							numeric: dateTakenObj.getTime()/1000|0,
-							display: dateTakenObj
+							display: dateTakenObj.toDateString()
 						},
 						dateuploaded: {
 							numeric: _.toNumber(d.photo.dateuploaded),
-							display: new Date(_.toNumber(d.photo.dateuploaded))
+							display: (new Date(_.toNumber(d.photo.dateuploaded) * 1000).toDateString())
 						},
 						description: d.photo.description._content,
 						owner: {
@@ -110,8 +117,6 @@ class PicturesContainer extends Component {
 
 			const merged = (_.merge(lastPage, response));
 
-			// console.log(merged);
-
 			this.setState({
 				photolist: firstPages.concat(merged)
 			});
@@ -124,7 +129,10 @@ class PicturesContainer extends Component {
 		fetch(getPicturesUrl(this.props.apiKey, this.props.userId, pageId))
 			.then(response => {
 				if (!response.ok) {
-					throw Error('Network request failed')
+					this.setState({
+						error: true,
+						errorMessage: response.statusText
+					});
 				}
 				return response;
 			})
@@ -164,24 +172,43 @@ class PicturesContainer extends Component {
 		});
 	}
 
-	handleImageLoaded(){
-		this.setState({
-			isLoading: false
+	handleOpenCarousel(index){
+		this.props.onUpdate({
+			carouselIndex: index,
+			isCarouselShown: true
 		});
 	}
 
+	handleCloseCarousel(){
+		this.props.onUpdate({isCarouselShown: false});
+	}
 
 	componentDidMount() {
 		this.fetchPictures(this.state.page);
 	}
 
 	fetchMorePhotos(){
-		console.log('in waypoint');
-		if(this.state.page < this.state.pages && !this.state.isLoading) {
+		if(this.state.page < this.state.pages) {
 			this.fetchPictures(this.state.page + 1);
+			this.dismissError();
 		}
 	}
 
+	dismissError() {
+		this.setState({
+			error: false
+		})
+	}
+
+	refreshPage() {
+		this.setState({
+			page: 1,
+			error: false,
+			photolist: []
+		});
+		this.fetchMorePhotos();
+		this.dismissError();
+	}
 
 	getPictureList(){
 		let that = this;
@@ -198,7 +225,8 @@ class PicturesContainer extends Component {
 			});
 		}
 
-		if(this.props.sortField && this.props.sortField !== ''){
+		// don't sort when all the info hasnt arrived yet; sort will trigger when they do
+		if(this.props.sortField && this.props.sortField !== '' && filteredArray[filteredArray.length-1].info){
 
 			filteredArray = _.orderBy(filteredArray, item =>{
 				if(this.props.sortField === 'views'){
@@ -208,10 +236,10 @@ class PicturesContainer extends Component {
 			}, [that.props.isAscending ? 'asc' : 'desc']);
 
 		}
-		// console.log(filteredArray);
+		console.log(filteredArray);
 		return _.map(filteredArray, (item, index) => {
 			return (
-				<Picture index={index} key={item.farm+'-'+item.secret+'-'+item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
+				<Picture onPictureClick={ (index) => this.handleOpenCarousel(index)} index={index} key={item.farm+'-'+item.secret+'-'+item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
 			);
 		});
 	}
@@ -219,34 +247,43 @@ class PicturesContainer extends Component {
 
 	render() {
 
-		if (this.state.error) {
-			return <p>Failed!</p>
-		}
-
 		return (
 			<div>
-				<div>
-					<Masonry
-						className={"my-gallery-class"} 
-						disableImagesLoaded={false}
-						updateOnEachImageLoad={false}
-						onImagesLoaded={this.handleImageLoaded}>
+				<div className="main-container" >
+					{ this.state.error ?
+					<Alert bsStyle="danger" className="error-alert" onDismiss={this.dismissError}>
+					<h4>Oh snap! You got an error!</h4>
+						<p>{this.state.errorMessage ? this.state.errorMessage : 'please try again.'}</p>
+						<p className="buttons">
+							<Button bsStyle="danger" onClick={this.refreshPage}>Refresh Page</Button>
+	            			<Button onClick={this.dismissError}>Close</Button>
+	            		</p>
+	        		</Alert> : null }
+					<div>
+						<Masonry
+							className={"my-gallery-class"} 
+							disableImagesLoaded={false}
+							updateOnEachImageLoad={true}
+						>
 
-						{this.getPictureList()}
+							{this.getPictureList()}
 
-					</Masonry>
+						</Masonry>
+					</div>
+					<Waypoint
+						buttomOffset={'-200px'}
+						onEnter={this.fetchMorePhotos}
+					>
+						 <div className="loader"><i className="fa fa-spinner fa-spin"></i></div>
+					</Waypoint>
 				</div>
-				<Waypoint
-					buttomOffset={'-200px'}
-					onEnter={this.fetchMorePhotos}
-					debug={true}
-				>
-					 <div className="loader"><i className="fa fa-spinner fa-spin"></i></div>
-				</Waypoint>
+				{ this.props.isCarouselShown ? 
+					<PictureCarousel onClose={ () => this.handleCloseCarousel()} index={this.props.carouselIndex} photolist={this.state.photolist}></PictureCarousel> : null
+				}
 			</div>
 		);
 	}
-	}
+}
 
 
 export default PicturesContainer;

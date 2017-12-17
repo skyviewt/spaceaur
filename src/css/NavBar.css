@@ -1,7 +1,7 @@
 .clear-field{
-	    position: absolute;
-    transform: translateX(-100%);
-    background: none;
-    box-shadow: none;
-    border: none;
+	position: absolute;
+	transform: translateX(-100%);
+	background: none;
+	box-shadow: none;
+	border: none;
 }

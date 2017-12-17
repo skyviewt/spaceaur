@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import '../css/App.css';
 import NavBar from './NavBar';
 import PicturesContainer from './PicturesContainer';
 
@@ -13,7 +12,9 @@ class App extends Component {
 		this.state = {
 			filterText: '',
 			sortField: '',
-			isAscending: false
+			isAscending: false,
+			carouselIndex: 0,
+			isCarouselShown: false
 		}
 		this.onUpdate = this.onUpdate.bind(this);
 	}
@@ -23,12 +24,11 @@ class App extends Component {
 		this.setState(data);
 	};
 
-
 	render() {
 		return (
 			<div>
-				<NavBar onUpdate={this.onUpdate} filterText={this.state.filterText} ></NavBar>
-				<PicturesContainer filterText={this.state.filterText} sortField={this.state.sortField} isAscending={this.state.isAscending} apiKey={APIKEY} userId={USERID}></PicturesContainer>
+				{!this.state.isCarouselShown ? <NavBar onUpdate={this.onUpdate} filterText={this.state.filterText} ></NavBar> : null }
+				<PicturesContainer onUpdate={this.onUpdate} isCarouselShown={this.state.isCarouselShown} carouselIndex={this.state.carouselIndex} filterText={this.state.filterText} sortField={this.state.sortField} isAscending={this.state.isAscending} apiKey={APIKEY} userId={USERID}></PicturesContainer>
 			</div>
 		);
 	}
