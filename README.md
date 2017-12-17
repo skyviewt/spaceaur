@@ -1,12 +1,14 @@
-This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 Spaceaur
 ========
 ## TO INFINITY AND BEYOND
+
+### This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
+
 This is a Flikr-like app that fetches NASA images and lets you view, sort and search through them.
 Used as a personal project to learn and build something in React under 5 days.
 
 
-##File structure
+## File structure
 
 ```
 my-app/
