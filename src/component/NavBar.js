@@ -7,9 +7,6 @@ class NavBar extends Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {
-			labelText: 'Sort By...'
-		}
 		this.updateFilterText = this.updateFilterText.bind(this);
 		this.updateSortField = this.updateSortField.bind(this);
 		this.clearText = this.clearText.bind(this);
@@ -34,9 +31,9 @@ class NavBar extends Component {
 	}
 
 	onChangeNavName(eventKey) {
-		this.setState({
+		this.props.onUpdate({
 			labelText: 'Sort by ' + this.refs[eventKey].props.children[1]
-		})
+		});
 	}
 
 	render() {
@@ -50,7 +47,7 @@ class NavBar extends Component {
 				</Navbar.Header>
 				<Navbar.Collapse>
 					<Nav>
-						<NavDropdown title={this.state.labelText} id="basic-nav-dropdown">
+						<NavDropdown title={this.props.labelText} id="basic-nav-dropdown">
 							<MenuItem
 								ref="dateuploaded1" 
 								eventKey="dateuploaded1" 

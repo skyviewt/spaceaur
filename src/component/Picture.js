@@ -11,7 +11,6 @@ class Picture extends Component {
 
 	constructor(props) {
 		super(props);
-
 		this.openCarousel = this.openCarousel.bind(this);
 	}
 

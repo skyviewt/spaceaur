@@ -74,14 +74,14 @@ class PictureCarousel extends Component {
 
 	getCarouselList(){
 		return _.map(this.props.photolist, (item, index) => {
-
+			console.log(item, index);
 			return (
-				<Carousel.Item key={index}>
+				<Carousel.Item key={item.key}>
 					{item.sizes ? 
 						<img 
-						width={this.calculateImageWidth(item.sizes[item.sizes.length - 2].width, item.sizes[item.sizes.length - 2].height)} 
-						height={this.calculateImageHeight(item.sizes[item.sizes.length - 2].width, item.sizes[item.sizes.length - 2].height)} 
-						alt="900x500" src={item.sizes[item.sizes.length - 2].source} /> : null 
+						width={this.calculateImageWidth(item.sizes[item.sizes.length - 1].width, item.sizes[item.sizes.length - 1].height)} 
+						height={this.calculateImageHeight(item.sizes[item.sizes.length - 1].width, item.sizes[item.sizes.length - 1].height)} 
+						alt="900x500" src={item.sizes[item.sizes.length - 1].source} /> : null 
 					}
 					<Carousel.Caption>
 						<h3>{item.title}</h3>

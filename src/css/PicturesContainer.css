@@ -1,5 +1,6 @@
 .main-container{
 	margin-top: 70px;
+	height: 100%;
 }
 .loader {
 	margin: 0 auto;
@@ -16,4 +17,11 @@
 .error-alert .buttons{
 	display: flex;
 	justify-content: space-around;
+}
+.overlay {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
 }

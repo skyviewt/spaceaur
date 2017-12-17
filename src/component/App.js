@@ -11,6 +11,7 @@ class App extends Component {
 		super(props);
 		this.state = {
 			filterText: '',
+			labelText: 'Sort by ...',
 			sortField: '',
 			isAscending: false,
 			carouselIndex: 0,
@@ -27,7 +28,7 @@ class App extends Component {
 	render() {
 		return (
 			<div>
-				{!this.state.isCarouselShown ? <NavBar onUpdate={this.onUpdate} filterText={this.state.filterText} ></NavBar> : null }
+				{!this.state.isCarouselShown ? <NavBar onUpdate={this.onUpdate} labelText={this.state.labelText} filterText={this.state.filterText} ></NavBar> : null }
 				<PicturesContainer onUpdate={this.onUpdate} isCarouselShown={this.state.isCarouselShown} carouselIndex={this.state.carouselIndex} filterText={this.state.filterText} sortField={this.state.sortField} isAscending={this.state.isAscending} apiKey={APIKEY} userId={USERID}></PicturesContainer>
 			</div>
 		);

@@ -29,6 +29,7 @@ class PicturesContainer extends Component {
 		this.dismissError = this.dismissError.bind(this);
 		this.handleOpenCarousel = this.handleOpenCarousel.bind(this);
 		this.handleCloseCarousel = this.handleCloseCarousel.bind(this);
+		this.syncPictureListState = this.syncPictureListState.bind(this);
 	}
 
 	fetchSizes(apiKey, farm, secret, id){
@@ -44,8 +45,11 @@ class PicturesContainer extends Component {
 			})
 			.then(d => d.json())
 			.then(d => {
+				const sizes = _.filter(d.sizes.size, (photo) =>{ 
+					return photo.label === 'Large' || photo.label === 'Original'; 
+				});
 				return {key: farm+'-'+secret+'-'+id,
-						sizes: d.sizes.size};
+						sizes: sizes};
 			},
 			 () => {
 			this.setState({
@@ -210,7 +214,7 @@ class PicturesContainer extends Component {
 		this.dismissError();
 	}
 
-	getPictureList(){
+	syncPictureListState(){
 		let that = this;
 		let filteredArray = this.state.photolist;
 
@@ -236,7 +240,13 @@ class PicturesContainer extends Component {
 			}, [that.props.isAscending ? 'asc' : 'desc']);
 
 		}
-		console.log(filteredArray);
+		return filteredArray;
+	}
+
+	getPictureList(){
+		let that = this;
+		const filteredArray = this.syncPictureListState();
+		// console.log(filteredArray);
 		return _.map(filteredArray, (item, index) => {
 			return (
 				<Picture onPictureClick={ (index) => this.handleOpenCarousel(index)} index={index} key={item.farm+'-'+item.secret+'-'+item.id} photoId={item.id} secret={item.secret} server={item.server} farm={item.farm} title={item.title} info={item.info} sizes={item.sizes} apiKey={that.props.apiKey}></Picture>
@@ -246,10 +256,9 @@ class PicturesContainer extends Component {
 
 
 	render() {
-
 		return (
 			<div>
-				<div className="main-container" >
+				<div className="main-container">
 					{ this.state.error ?
 					<Alert bsStyle="danger" className="error-alert" onDismiss={this.dismissError}>
 					<h4>Oh snap! You got an error!</h4>
@@ -278,7 +287,10 @@ class PicturesContainer extends Component {
 					</Waypoint>
 				</div>
 				{ this.props.isCarouselShown ? 
-					<PictureCarousel onClose={ () => this.handleCloseCarousel()} index={this.props.carouselIndex} photolist={this.state.photolist}></PictureCarousel> : null
+					<div className="overlay">
+						<PictureCarousel onClose={ () => this.handleCloseCarousel()} index={this.props.carouselIndex} photolist={this.syncPictureListState()}></PictureCarousel> 
+					</div>
+					: null
 				}
 			</div>
 		);
