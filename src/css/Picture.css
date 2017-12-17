@@ -1,32 +1,50 @@
 .thumbnail {
-	min-height: 150px;
+  min-height: 150px;
 }
 .thumbnail .caption {
-	color: white;
-	position: absolute;
-	width: calc(100% - 22px);
-	bottom: 6px;
-	left: 11px;
+  color: white;
+  position: absolute;
+  width: calc(100% - 22px);
+  bottom: 6px;
+  left: 11px;
 }
 .image-title {
-	padding: 2vmin;
-	background: #000000b3;
-	border-radius: 0 0 4px 4px;
+  padding: 2vmin;
+  background: #000000b3;
+  border-radius: 0 0 4px 4px;
 }
-.view-count{
-	display: block;
-	color: #8c8c8c;
-	font-size: small;
-	font-style: italic;
-	font-weight: 100;
+.view-count {
+  display: block;
+  color: #8c8c8c;
+  font-size: small;
+  font-style: italic;
+  font-weight: 100;
 }
-.index-counter{
-	position: absolute;
-	padding: 1vmin 2vmin;
-	color: white;
-	font-weight: bold;
-	background: #959a9b;
-	left: 20px;
-	top: 5px;
-	border-radius: 0 0 4px 0;
+.index-counter {
+  position: absolute;
+  padding: 1vmin 2vmin;
+  color: white;
+  font-weight: bold;
+  background: #959a9b;
+  left: 20px;
+  top: 5px;
+  border-radius: 0 0 4px 0;
+}
+.on-hover {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(100% - 20px);
+  width: calc(100% - 32px);
+  background: #eeeeeec9;
+  text-align: center;
+  margin: 0 auto;
+  font-size: larger;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
 }

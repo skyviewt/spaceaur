@@ -1,27 +1,30 @@
-.main-container{
-	margin-top: 70px;
-	height: 100%;
+.main-container {
+  margin-top: 70px;
+  height: 100%;
+  overflow-y: auto;
 }
 .loader {
-	margin: 0 auto;
-	text-align: center;
-	font-size: 24px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 24px;
 }
 
-.loader .fa-spin{
-	color: #959a9b;
+.loader .fa-spin {
+  color: #959a9b;
 }
-.error-alert{
-	text-align: center;
+.error-alert {
+  text-align: center;
 }
-.error-alert .buttons{
-	display: flex;
-	justify-content: space-around;
+.error-alert .buttons {
+  display: flex;
+  justify-content: space-around;
 }
 .overlay {
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	right: 0px;
-	bottom: 0px;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  overflow-y: hidden;
+  z-index: 1000;
 }
