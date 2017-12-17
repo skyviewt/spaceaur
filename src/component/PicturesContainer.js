@@ -361,9 +361,8 @@ class PicturesContainer extends Component {
               {this.getPictureList()}
             </Masonry>
           </div>
-          {(this.props.filterText === undefined ||
-            this.props.filterText === '') &&
-          !this.props.isCarouselShown ? (
+          {this.props.filterText === undefined ||
+          this.props.filterText === '' ? (
             <Waypoint buttomOffset={'-150px'} onEnter={this.fetchMorePhotos}>
               <div className="loader">
                 <i className="fa fa-spinner fa-spin" />
