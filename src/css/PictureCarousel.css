@@ -24,12 +24,16 @@
   font-style: italic;
 }
 .close-button {
+  opacity: 0.5;
   z-index: 1;
   position: absolute;
   top: 0;
   font-size: 50px;
   color: white;
   left: calc(50% - 25px);
+}
+.close-button:hover{
+  opacity: 1;
 }
 .carousel-indicators {
   left: 5%;
