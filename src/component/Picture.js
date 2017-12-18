@@ -63,7 +63,9 @@ class Picture extends Component {
         </Thumbnail>
         {this.state.isHovering ? (
           <div className="on-hover">
-            <span>Click to see more details</span>
+            <span>
+              <i className="fa fa-camera-retro fa-2x" /> Click for more details
+            </span>
           </div>
         ) : null}
       </Col>

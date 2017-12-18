@@ -85,6 +85,9 @@ class PictureCarousel extends Component {
     return _.map(this.props.photolist, (item, index) => {
       return (
         <Carousel.Item key={item.key}>
+          <div className="carousel-loading">
+            <i className="fa fa-circle-o-notch fa-spin" />
+          </div>
           {item.sizes ? (
             <img
               width={this.calculateImageWidth(item.sizes)}
