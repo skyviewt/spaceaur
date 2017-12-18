@@ -20,7 +20,7 @@ class PicturesContainer extends Component {
     this.state = {
       page: 1,
       error: false,
-      isloading: true
+      isLoading: true
     };
     this.fetchMorePhotos = this.fetchMorePhotos.bind(this);
     this.disPatchAllPromises = this.disPatchAllPromises.bind(this);
@@ -30,19 +30,21 @@ class PicturesContainer extends Component {
     this.handleCloseCarousel = this.handleCloseCarousel.bind(this);
     this.syncPictureListState = this.syncPictureListState.bind(this);
     this.handleMasonryScroll = this.handleMasonryScroll.bind(this);
+    this.getWaypoint = this.getWaypoint.bind(this);
   }
 
   componentDidMount() {
     window.addEventListener('wheel', this.handleMasonryScroll);
+    window.addEventListener('touchmove', this.handleMasonryScroll);
   }
   componentWillUnmount() {
     window.removeEventListener('wheel', this.handleMasonryScroll);
+    window.removeEventListener('touchmove', this.handleMasonryScroll);
   }
 
   handleMasonryScroll(event) {
     if (this.props.isCarouselShown) {
       event.preventDefault();
-      event.stopPropagation();
     }
   }
 
@@ -52,8 +54,7 @@ class PicturesContainer extends Component {
         if (!response.ok) {
           this.setState({
             error: true,
-            errorMessage: response.statusText,
-            isLoading: true
+            errorMessage: response.statusText
           });
         }
         return response;
@@ -146,7 +147,8 @@ class PicturesContainer extends Component {
       const merged = _.merge(lastPage, response);
 
       this.setState({
-        photolist: firstPages.concat(merged)
+        photolist: firstPages.concat(merged),
+        isLoading: false
       });
     });
   }
@@ -218,7 +220,8 @@ class PicturesContainer extends Component {
         },
         () => {
           this.setState({
-            error: true
+            error: true,
+            isLoading: false
           });
         }
       );
@@ -236,19 +239,18 @@ class PicturesContainer extends Component {
   }
 
   fetchMorePhotos() {
-    if (
-      this.state.pages === undefined ||
-      (this.state.page < this.state.pages && !this.state.isLoading)
-    ) {
-      this.fetchPictures(this.state.page + 1);
-      this.dismissError();
-    }
+    console.log('in fetch');
+
+    this.fetchPictures(this.state.page + 1);
+    this.dismissError();
   }
 
   dismissError() {
-    this.setState({
-      error: false
-    });
+    if (this.state.error === true) {
+      this.setState({
+        error: false
+      });
+    }
   }
 
   refreshPage() {
@@ -327,6 +329,15 @@ class PicturesContainer extends Component {
     });
   }
 
+  getWaypoint() {
+    return (
+      this.state.pages === undefined ||
+      ((this.props.filterText === undefined || this.props.filterText === '') &&
+        this.state.page < this.state.pages &&
+        !this.state.isLoading)
+    );
+  }
+
   render() {
     return (
       <div>
@@ -337,7 +348,7 @@ class PicturesContainer extends Component {
               className="error-alert"
               onDismiss={this.dismissError}
             >
-              <h4>Oh snap! You got an error!</h4>
+              <h4>Aw Fish! You got an error!</h4>
               <p>
                 {this.state.errorMessage
                   ? this.state.errorMessage
@@ -351,25 +362,22 @@ class PicturesContainer extends Component {
               </p>
             </Alert>
           ) : null}
-          <div>
-            <Masonry
-              ref="masonry"
-              className={'my-gallery-class'}
-              disableImagesLoaded={false}
-              updateOnEachImageLoad={true}
-            >
-              {this.getPictureList()}
-            </Masonry>
-          </div>
-          {this.props.filterText === undefined ||
-          this.props.filterText === '' ? (
-            <Waypoint buttomOffset={'-150px'} onEnter={this.fetchMorePhotos}>
-              <div className="loader">
-                <i className="fa fa-spinner fa-spin" />
-              </div>
-            </Waypoint>
-          ) : null}
+          <Masonry
+            ref="masonry"
+            className={'my-gallery-class'}
+            disableImagesLoaded={false}
+            updateOnEachImageLoad={false}
+          >
+            {this.getPictureList()}
+          </Masonry>
         </div>
+        {this.getWaypoint() ? (
+          <Waypoint onEnter={this.fetchMorePhotos}>
+            <div className="loader">
+              <i className="fa fa-spinner fa-spin" />
+            </div>
+          </Waypoint>
+        ) : null}
         {this.props.isCarouselShown ? (
           <div className="overlay">
             <PictureCarousel
