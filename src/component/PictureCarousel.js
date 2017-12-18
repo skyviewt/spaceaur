@@ -33,7 +33,9 @@ class PictureCarousel extends Component {
   }
 
   closeModal() {
-    this.setState({ showModal: false });
+    if (this.state.showModal) {
+      this.setState({ showModal: false });
+    }
   }
 
   handleSelect(selectedIndex, event) {
@@ -146,7 +148,7 @@ class PictureCarousel extends Component {
     return (
       <div>
         <div className="close-button" onClick={this.props.onClose}>
-          <i className="fa fa-times-circle-o" />
+          <i className="fa fa-times" />
         </div>
         <Carousel
           style={carouselStyle}

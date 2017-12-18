@@ -29,7 +29,6 @@
   z-index: 1000;
 }
 .empty-search {
-  left: 25% !important;
-  width: 50%;
+  width: 100%;
   text-align: center;
 }

@@ -35,11 +35,11 @@ class PicturesContainer extends Component {
 
   componentDidMount() {
     window.addEventListener('wheel', this.handleMasonryScroll);
-    window.addEventListener('touchstart', this.handleMasonryScroll);
+    window.addEventListener('touchmove', this.handleMasonryScroll);
   }
   componentWillUnmount() {
     window.removeEventListener('wheel', this.handleMasonryScroll);
-    window.removeEventListener('touchstart', this.handleMasonryScroll);
+    window.removeEventListener('touchmove', this.handleMasonryScroll);
   }
 
   handleMasonryScroll(event) {
@@ -372,7 +372,9 @@ class PicturesContainer extends Component {
             disableImagesLoaded={false}
             updateOnEachImageLoad={false}
           >
-            {_.isEmpty(pictureList) ? (
+            {_.isEmpty(pictureList) &&
+            this.state.isLoading === false &&
+            this.state.pages !== undefined ? (
               <Alert className="empty-search" bsStyle="warning">
                 <strong>Aw Fish.</strong> Nope. Nothing matches your input
               </Alert>
