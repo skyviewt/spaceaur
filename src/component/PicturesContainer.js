@@ -35,11 +35,11 @@ class PicturesContainer extends Component {
 
   componentDidMount() {
     window.addEventListener('wheel', this.handleMasonryScroll);
-    window.addEventListener('touchmove', this.handleMasonryScroll);
+    window.addEventListener('touchstart', this.handleMasonryScroll);
   }
   componentWillUnmount() {
     window.removeEventListener('wheel', this.handleMasonryScroll);
-    window.removeEventListener('touchmove', this.handleMasonryScroll);
+    window.removeEventListener('touchstart', this.handleMasonryScroll);
   }
 
   handleMasonryScroll(event) {
@@ -342,6 +342,7 @@ class PicturesContainer extends Component {
   }
 
   render() {
+    const pictureList = this.getPictureList();
     return (
       <div>
         <div className="main-container">
@@ -371,7 +372,13 @@ class PicturesContainer extends Component {
             disableImagesLoaded={false}
             updateOnEachImageLoad={false}
           >
-            {this.getPictureList()}
+            {_.isEmpty(pictureList) ? (
+              <Alert className="empty-search" bsStyle="warning">
+                <strong>Aw Fish.</strong> Nope. Nothing matches your input
+              </Alert>
+            ) : (
+              pictureList
+            )}
           </Masonry>
         </div>
         {this.getWaypoint() ? (

@@ -51,3 +51,15 @@
   text-align: center;
   top: calc(50% - 25px);
 }
+@media only screen and (max-device-width: 420px) {
+  .carousel-caption {
+    padding: 0;
+  }
+  .carousel-caption h3 {
+    font-size: medium;
+  }
+  .carousel-caption button,
+  .carousel-caption .details {
+    font-size: small;
+  }
+}

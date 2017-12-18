@@ -28,3 +28,8 @@
   overflow-y: hidden;
   z-index: 1000;
 }
+.empty-search {
+  left: 25% !important;
+  width: 50%;
+  text-align: center;
+}
