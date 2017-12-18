@@ -288,6 +288,7 @@ class PicturesContainer extends Component {
 
     // don't sort when all the info hasnt arrived yet; sort will trigger when they do
     if (
+      !_.isEmpty(filteredArray) &&
       this.props.sortField &&
       this.props.sortField !== '' &&
       filteredArray[filteredArray.length - 1].info
@@ -310,23 +311,25 @@ class PicturesContainer extends Component {
     let that = this;
     const filteredArray = this.syncPictureListState();
     // console.log(filteredArray);
-    return _.map(filteredArray, (item, index) => {
-      return (
-        <Picture
-          onPictureClick={index => this.handleOpenCarousel(index)}
-          index={index}
-          key={item.farm + '-' + item.secret + '-' + item.id}
-          photoId={item.id}
-          secret={item.secret}
-          server={item.server}
-          farm={item.farm}
-          title={item.title}
-          info={item.info}
-          sizes={item.sizes}
-          apiKey={that.props.apiKey}
-        />
-      );
-    });
+    return !_.isEmpty(filteredArray)
+      ? _.map(filteredArray, (item, index) => {
+          return (
+            <Picture
+              onPictureClick={index => this.handleOpenCarousel(index)}
+              index={index}
+              key={item.farm + '-' + item.secret + '-' + item.id}
+              photoId={item.id}
+              secret={item.secret}
+              server={item.server}
+              farm={item.farm}
+              title={item.title}
+              info={item.info}
+              sizes={item.sizes}
+              apiKey={that.props.apiKey}
+            />
+          );
+        })
+      : [];
   }
 
   getWaypoint() {
